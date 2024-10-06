@@ -116,6 +116,9 @@ void myfree(void *ptr, char *file, int line) {
 				fprintf(stderr, "free: Inappropriate pointer (%s:%d)", file, line);
 				exit(2);
 			}
+
+			*is_allocated = FREE;
+
 			if ((nxt < (heap.bytes + MEMLENGTH)) && (*nxt_is_all == FREE)) chunk_size += (HEADERSIZE + *nxt_size);
 
 			return;
