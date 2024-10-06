@@ -8,9 +8,9 @@
 #define ALLOCATED 1
 #define FREE 0
 
-static uniont{
+static union{
 	char bytes[MEMLENGTH];
-	doublt not_used;
+	double not_used;
 } heap;
 
 static int is_init = 0;
@@ -59,11 +59,13 @@ void *mymalloc(size_t size, char *file, int line) {
 
 		if ((*is_allocated == FREE) && (*chunk_size >= size_8_mul)) {
 			char *nxt = crr + (HEADERSIZE + size_8_mul);
-			int *nxt_size = (int *)nxt;
-			int *nxt_is_all = (int *)(nxt + HEADERINT);
+			if (nxt < (heap.bytes + MEMLENGTH)) {
+				int* nxt_size = (int*)nxt;
+				int* nxt_is_all = (int*)(nxt + HEADERINT);
 
-			*nxt_size = *chunk_size - (HEADERSIZE + size_8_mul);
-			*nxt_is_all = FREE;
+				*nxt_size = *chunk_size - (HEADERSIZE + size_8_mul);
+				*nxt_is_all = FREE;
+			}
 
 			*chunk_size = size_8_mul;
 			*is_allocated = ALLOCATED;
