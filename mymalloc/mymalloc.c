@@ -3,7 +3,8 @@
 #include "mymalloc.h"
 
 #define MEMLENGTH 4096
-#define MIMCHUNKSIZE 8
+#define HEADERSIZE 8
+#define HEADERINT 4
 #define ALLOCATED 1
 #define FREE 0
 
@@ -15,9 +16,9 @@ static uniont{
 static int is_init = 0;
 
 void init() {
-	int *head_chunk_size = heap.bytes;
-	int* head_is_allocated = (heap.bytes + 4);
-	*head_chunk_size = MEMLENGTH - MIMCHUNKSIZE;
+	int *head_chunk_size = (int *)heap.bytes;
+	int *head_is_allocated = (int *)(heap.bytes + HEADERINT);
+	*head_chunk_size = MEMLENGTH - HEADERSIZE;
 	*head_is_allocated = FREE;
 	is_init = 1;
 	atexit(leak_detector);
@@ -27,34 +28,105 @@ void leak_detector() {
 	int size = 0;
 	int obj = 0;
 
-	/*
-	* detection here
-	*/
+	char *crr = heap.bytes;
+
+	while (crr != (heap.bytes + MEMLENGTH)) {
+		int *chunk_size = (int *)crr;
+		int *is_allocated = (int *)(crr + HEADERINT);
+		if (*is_allocated == ALLOCATED) {
+			size += *chunk_size;
+			obj++;
+		}
+		crr += (HEADERSIZE + *chunk_size);
+	}
 
 	if (size) {
 		fprintf(stderr, "mymalloc: %d bytes leaked in %d objects.", size, obj);
 	}
 }
 
-void *mymalloc(size_t size, char* file, int line) {
+void *mymalloc(size_t size, char *file, int line) {
+	int size_8_mul = (size + 7) & (~7);
+	char *crr;
+
 	if (!(is_init)) init();
-	if (/* cannot allocate */) {
-		fprintf(stderr, "malloc: Unable to allocate %d bytes (%s:%d)", size, file, line);
-		return NULL;
+
+	crr = heap.bytes;
+
+	while (crr != (heap.bytes + MEMLENGTH)) {
+		int *chunk_size = (int *)crr;
+		int *is_allocated = (int *)(crr + HEADERINT);
+
+		if ((*is_allocated == FREE) && (*chunk_size >= size_8_mul)) {
+			char *nxt = crr + (HEADERSIZE + size_8_mul);
+			int *nxt_size = (int *)nxt;
+			int *nxt_is_all = (int *)(nxt + HEADERINT);
+
+			*nxt_size = *chunk_size - (HEADERSIZE + size_8_mul);
+			*nxt_is_all = FREE;
+
+			*chunk_size = size_8_mul;
+			*is_allocated = ALLOCATED;
+
+			return (void *)(crr + HEADERSIZE);
+		}
+		crr += (HEADERSIZE + *chunk_size);
+	}
+
+	fprintf(stderr, "malloc: Unable to allocate %d bytes (%s:%d)", size, file, line);
+	return NULL;
+
+}
+
+void myfree(void *ptr, char *file, int line) {
+	char *crr = heap.bytes;
+	char *obj = ((char *)(ptr)-HEADERSIZE);
+
+	if ((obj < heap.bytes) || ((heap.bytes + MEMLENGTH) <= obj)) { // Calling free() with an address not obtained from malloc()
+		fprintf(stderr, "free: Inappropriate pointer (%s:%d)", file, line);
+		exit(2);
+	}
+	
+	while(crr != (heap.bytes + MEMLENGTH)){
+		int *chunk_size = (int *)crr;
+		int *is_allocated = (int *)(crr + HEADERINT);
+
+		if (is_adjacent(crr, obj) && (*is_allocated == FREE)) { // if the previous chunk free, connect it to the object
+			int *obj_size = (int *)obj;
+			int *obj_is_all = (int *)(obj + HEADERINT);
+
+			if (*obj_is_all == FREE) { // Calling free() a second time on the same pointer
+				fprintf(stderr, "free: Inappropriate pointer (%s:%d)", file, line);
+				exit(2);
+			}
+
+			*chunk_size += (HEADERSIZE + *obj_size);
+			*is_allocated = ALLOCATED; // for the purpose of detecting second call in the next if section
+			obj = crr;
+		}
+
+		if (crr == obj) {
+			char *nxt = crr + (HEADERSIZE + chunk_size);
+			int *nxt_size = (int *)nxt;
+			int *nxt_is_all = (int *)(nxt + HEADERINT);
+
+			if (*is_allocated == FREE) { // Calling free() a second time on the same pointer.
+				fprintf(stderr, "free: Inappropriate pointer (%s:%d)", file, line);
+				exit(2);
+			}
+			if ((nxt < (heap.bytes + MEMLENGTH)) && (*nxt_is_all == FREE)) chunk_size += (HEADERSIZE + *nxt_size);
+
+			return;
+		}
+
+		if (crr > obj) { // Calling free() with an address not at the start of a chunk
+			fprintf(stderr, "free: Inappropriate pointer (%s:%d)", file, line);
+			exit(2);
+		}
 	}
 }
 
-void myfree(void* ptr, char* file, int line) {
-	if (/* called with an address */) {
-		fprintf(stderr, "free: Inappropriate pointer (%s:%d)", file, line);
-		exit(2);
-	}
-	if (/* called with an address not at the start of a chunk */) {
-		fprintf(stderr, "free: Inappropriate pointer (%s:%d)", file, line);
-		exit(2);
-	}
-	if (/* second call */) {
-		fprintf(stderr, "free: Inappropriate pointer (%s:%d)", file, line);
-		exit(2);
-	}
+int is_adjacent(char *crr, char *nxt) {
+	int *chunk_size = (int *)crr;
+	return ((crr + HEADERSIZE + *chunk_size) == nxt);
 }
