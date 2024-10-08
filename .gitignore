@@ -1,6 +1,9 @@
 # pdfs
 *.pdf
 
+# config files
+*.json
+
 # Prerequisites
 *.d
 
