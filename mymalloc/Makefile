@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -std=c99 -Wall -Wvla -fsanitize=address,undefined
+CFLAGS = -std=c99 -Wall -Wvla -fsanitize=address,undefined -g
 TARGETS = memtest memgrind errorcheck
 
 memtest: memtest.o mymalloc.o
