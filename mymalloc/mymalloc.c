@@ -79,17 +79,22 @@ void *mymalloc(size_t size, char *file, int line) {
 		int *chunk_size = (int *)crr;
 		int *is_allocated = (int *)(crr + HEADERINT);
 
-		if ((*is_allocated == FREE) && (*chunk_size >= size_8_mul)) {
-			char *nxt = crr + (HEADERSIZE + size_8_mul);
-			if (nxt < (heap.bytes + MEMLENGTH)) {
-				int* nxt_size = (int*)nxt;
-				int* nxt_is_all = (int*)(nxt + HEADERINT);
+		if ((*is_allocated == FREE) && (*chunk_size >= size_8_mul )) {
 
-				*nxt_size = *chunk_size - (HEADERSIZE + size_8_mul);
-				*nxt_is_all = FREE;
+
+			if(*chunk_size >= size_8_mul + 16){
+				char *nxt = crr + (HEADERSIZE + size_8_mul);
+				if (nxt < (heap.bytes + MEMLENGTH)) {
+					int* nxt_size = (int*)nxt;
+					int* nxt_is_all = (int*)(nxt + HEADERINT);
+
+					*nxt_size = *chunk_size - (HEADERSIZE + size_8_mul);
+					*nxt_is_all = FREE;
+					*chunk_size = size_8_mul;
+
+				}
+
 			}
-
-			*chunk_size = size_8_mul;
 			*is_allocated = ALLOCATED;
 
 			return (void *)(crr + HEADERSIZE);
@@ -130,9 +135,9 @@ void myfree(void *ptr, char *file, int line) {
 				if ((nxt < (heap.bytes + MEMLENGTH)) && (*nxt_is_all == FREE)) 
 					*chunk_size += (HEADERSIZE + *nxt_size);
 			} else {
-				*last_free_pointer += *obj + HEADERSIZE;
+				*(int *)(last_free_pointer) += *(int *)(obj) + HEADERSIZE;
 				if ((nxt < (heap.bytes + MEMLENGTH)) && (*nxt_is_all == FREE))
-					*last_free_pointer += HEADERSIZE + *nxt_size; 
+					*(int *)(last_free_pointer) += HEADERSIZE + *nxt_size; 
 			} 
 
 			return;
