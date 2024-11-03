@@ -17,6 +17,7 @@ typedef struct{
 
 int is_space(char c){ return (c != '-') && (c != '\'') && (c < 'A' || ('Z' < c && c < 'a') || ('z' < c)); }
 
+/*
 char to_lower(char c){ return (('A' <= c) && (c <= 'Z'))? c + ('a' - 'A') : c; }
 char *lower_cpy(char *dst, const char *src){
     strcpy(dst, src);
@@ -39,15 +40,20 @@ int lower_cmp(char *s1, char *s2){
     free(buf2);
     return out;
 }
+*/
 
-int cmp_w(const void *m1, const void *m2){ return strcmp((*(in_map **)m1)->word, (*(in_map **)m2)->word); }
-int cmp_n(const void *m1, const void *m2){
-    if((*(in_map **)m1)->n == (*(in_map **)m2)->n){
+int cmp_w(const void* m1, const void* m2) { return strcmp((*(in_map**)m1)->word, (*(in_map**)m2)->word); }
+int cmp_n(const void* m1, const void* m2) {
+    if ((*(in_map**)m1)->n == (*(in_map**)m2)->n) {
+        /*
         char *s1 = (*(in_map **)m1)->word;
         char *s2 = (*(in_map **)m2)->word;
         if(lower_cmp(s1, s2) == 0) return strcmp(s1, s2);
         else return lower_cmp(s1, s2);
-    }else return -1 * ((*(in_map **)m1)->n - (*(in_map **)m2)->n);
+        */
+        return strcmp((*(in_map**)m1)->word, (*(in_map**)m2)->word);
+    }
+    else return -1 * ((*(in_map**)m1)->n - (*(in_map**)m2)->n);
 }
 
 typedef struct{
