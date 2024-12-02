@@ -34,8 +34,8 @@ void workload(){
         free(test2[i]);
     }
 
-    char *test3[120];
-    char test3Allocated[120];
+    char* test3[120];
+    char test3Allocated[120] = {0};
     int allocations = 120;
     int numAllocs = 0;
     while(allocations){

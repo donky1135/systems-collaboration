@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -std=c99 -Wall -Wvla -fsanitize=address,undefined -g
+CFLAGS = -std=c99 -Wall -Wvla -fsanitize=address,undefined -g -fno-strict-aliasing
 TARGETS = memtest memgrind errorcheck
 
 memtest: memtest.o mymalloc.o
@@ -19,6 +19,16 @@ errorcheck: errorcheck.o mymalloc.o
 	$(CC) $(CFLAGS) -o $@ $^
 %.o: %.c
 	$(CC) $(CFLAGS) -c $<
+doublefree: memtest.o mymalloc.o mymalloc.h
+	$(CC) $(CFLAGS) -o $@ $^
+badpointer: mymalloc.o mymalloc.h
+	$(CC) $(CFLAGS) -o $@ $^
+toolarge: mymalloc.o mymalloc.h
+	$(CC) $(CFLAGS) -o $@ $^
+nothead: mymalloc.o mymalloc.h
+	$(CC) $(CFLAGS) -o $@ $^
+
+
 leakymemtest.o: memtest.o mymalloc.h
 	$(CC) -c $(CFLAGS) -DLEAK $< -o $@
 leakytest: leakymemtest.o mymalloc.o

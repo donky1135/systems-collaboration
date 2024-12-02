@@ -8,6 +8,8 @@
 #include <dirent.h>
 #include <stdarg.h>
 
+#define PATH_MAX 4096
+
 #define BUFSIZE 16
 
 typedef struct{
@@ -60,7 +62,16 @@ typedef struct{
 	int len;
 	int num;
 	in_map **m;
-}map;
+} map;
+
+void free_map(map *m){
+    for(int i = 0; i < m->num; i++){
+        free((m->m)[i]->word);
+        free((m->m)[i]);        
+    }
+    free(m->m);
+    free(m);
+}
 
 void sort_num(map *this){ qsort(this->m, (size_t)this->num, sizeof(in_map *), cmp_n); }
 void sort_word(map *this){ qsort(this->m, (size_t)this->num, sizeof(in_map *), cmp_w); }
@@ -130,15 +141,27 @@ int words(int argc, char **argv) {
         char path[] = "./";
         if(!stat(filename, &buf_st)){
             if(S_ISDIR(buf_st.st_mode)) dir_count(filename);
-            else if(S_ISREG(buf_st.st_mode) && is_txt(filename)) file_count(filename);
+            else if(S_ISREG(buf_st.st_mode)) file_count(filename);
         }
     }
 
 	sort_num(word_cnt);
 	for(int i = 0; i < word_cnt->num; i++){
-		printf("%s %d\n", ((word_cnt->m)[i])->word, ((word_cnt->m)[i])->n);
-	}
-
+        write(1,((word_cnt->m)[i])->word,strlen(((word_cnt->m)[i])->word));
+        int count = ((word_cnt->m)[i])->n;
+        int log = 0;
+        while(count > 0){
+            count /= 10;
+            log++;
+        }
+        char* buff = malloc(sizeof(char)*(3 + log));
+        sprintf(buff," %d\n",((word_cnt->m)[i])->n);
+        write(1,buff,3+log);
+    	// printf("%s %d\n", ((word_cnt->m)[i])->word, ((word_cnt->m)[i])->n); //need to change to write to stdio
+        free(buff);
+    
+    }
+    free_map(word_cnt);
     return 0;
 }
 
@@ -161,7 +184,8 @@ int file_count(char *filename){
 					word[len_word] = '\0';
                     word = (char *)realloc(word, sizeof(char) * (len_word + 1));
 					if(!add(word_cnt, word)) free(word);
-					word_len_max = BUFSIZE;
+					
+                    word_len_max = BUFSIZE;
 					word = (char *)malloc(sizeof(char) * (word_len_max + 1));
 					in_word = 0;
 					len_word = 0;
@@ -174,10 +198,12 @@ int file_count(char *filename){
                         word[len_word] = '\0';
                         word = (char *)realloc(word, sizeof(char) * (len_word + 1));
                         if(!add(word_cnt, word)) free(word);
+                        
                         word_len_max = BUFSIZE;
                         word = (char *)malloc(sizeof(char) * (word_len_max + 1));
                         in_word = 0;
                         len_word = 0;
+                        
                         continue;
                     }
                 }
@@ -195,7 +221,9 @@ int file_count(char *filename){
 		if(word[len_word - 1] == '-') len_word--;
 		word[len_word] = '\0';
 		if(!add(word_cnt, word)) free(word);
-	}
+	} else {
+        free(word);
+    }
     close(fd);
     return 0;
 }

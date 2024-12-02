@@ -1,0 +1,33 @@
+Authors: Alexander Valentino (anv39) & Taichi Ozaki (to178)
+
+Mymalloc implementation philosophy:
+
+For mymalloc and myfree implementation, I basically follow the document and recitation. It is better to be stored the value of chunk_size and is_allocated in int for using, but better to be char pointer to point object header for iterating by bytes, casting between char * and int * to treat them.
+For mymalloc, when allocation occurs I check the chunk to be allocated is large enough to be split into 2 chunks. Not only the situation the chunk size is same as the size desired to be allocated but also the situation the chunk size is only 8 bytes larger than the size desired to be allocated, I allocate the whole thing to the object because the chunk with only header with 0 byte object is nonsense.
+For myfree, it is important to consider the object pointer is 8 bytes before the pointer I get from the argument. When freeing a chunk in the middle of the heap, check not only if the chunk after the one is free but also if the previous chunk is free to combine them into a large free chunk. To do so, I use a pointer to the last free chunk and check if the pointer and the object are adjacent. For one after the object, it is easy to check whether it is free.
+
+
+Testing implementation philosophy: 
+(Didn’t have time to implement this)
+For testing mymalloc I took inspiration from a competitive programming website I like called codeforces.  On codeforces one has to implement the solution to a given problem, and there are a bunch of test cases.  You have to structure your program so that it first accepts the number of test cases and then it will iterate through the test cases.  Given that we only really care about the allocation of data and the data itself, malloc can be tested via just allocations.  In performing allocations we only care about 3 quantities: 
+-  Size of the “smallest unit’ (sizeof the struct or primitive type)
+- number of units
+- positions of units
+From specifying only these three numbers, we can specify all the allocations and deallocations we want.  This can be encoded as commands.  In particular, the commands can either specify If
+	1) An allocation without reference to a location in the heap is done
+	2) An allocation with reference to a location is done in the heap is done
+	3) A deallocation without reference to a location in the heap is done
+	4) A deallocation with reference to a location  in the heap is done
+Note that doing allocations and deallocation
+s with 
+(disregard above)
+
+(basic design thoughts)
+I created 4 possible tests based directly off of what you specified in the documentation
+1 double free doesn’t work
+2 you can allocate up to the limit but not over
+3 you cannot free a pointer which is not at the head of a block
+4 you cannot free an arbitrary pointer
+
+These are encoded in the files labelled as such, all of which will fail in an obvious way.  
+

@@ -1,0 +1,20 @@
+Authors: Alexander Valentino (anv39) & Taichi Ozaki (to178)
+
+Design philosophy: Looking at the program's simplicity, a monolithic file was written, words.c.  Outside of the obvious base requirements for directory traversal and word criterion, the program stores the word frequency pairs in a sorted map data structure.  This ensures that access times are not excessive and also allows for more efficient printing upon the completion of the directory traversal.  Due to everything being allocated at runtime, there should be no limit to the length nor number of words.  
+
+
+Testing philosophy:
+Our program successfully meets the basic design requirements, as shown in the listing below.  Testing of memory constraints is hard due to the need to dynamically generate testing files and directories.  
+
+Testing is comprised of 6 directories.  The tests are as follows
+test1: example 2.1
+test2: first example given 
+test3: testing feature defined in the note 1.2
+test4: checking both that words are split up when a number is inbetween.  Also tests the printing of numbers who have more than one decimal place.
+test5: checking that directory traversal excludes files that don’t end in .txt
+Taichi test:
+	sub_1.txt: testing base functionality
+	sub_2.txt: testing printing functionality with relation to capitals
+	.sub_3.txt: testing exclusion of files beginning with .
+	sub_sub_1.txt: testing directory traversal capabilities
+	
