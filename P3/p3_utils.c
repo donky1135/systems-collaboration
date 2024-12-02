@@ -48,7 +48,7 @@ void rd_in(char *filename){ // redirection for input
 }
 
 void rd_out(char *filename){ // redirection for output
-    int fd = open(filename, O_WRONLY);
+    int fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP);
     close(stdout);
     dup2(fd, stdout);
     close(fd);
