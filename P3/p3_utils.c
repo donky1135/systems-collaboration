@@ -12,18 +12,20 @@ void set_fd_origins(){ // hold standard input/output so that can return to it. m
     stdin_origin = dup(stdin);
 }
 
-int cd(char *path){
-    return chdir(path);
+void cd(char *path){
+    if (chdir(path) == -1) {
+        fprintf(stdout, "No such file or directory");
+    }
 }
 
-int pwd(){
+void pwd(){
     int PATH_SIZE = 4096;
     char pathname[PATH_SIZE];
     getcwd(pathname, PATH_SIZE);
     fprintf(stdout, "%s", pathname);
 }
 
-int which(char *filename){
+void which(char *filename){
     if(strcmp(filename,"cd") == 0 || strcmp(filename, "pwd") == 0 || strcmp(filename, "which") == 0 || strcmp(filename, "exit") == 0){
         // error because cmd name is same as built-in
         return 1;
