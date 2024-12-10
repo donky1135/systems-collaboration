@@ -1,0 +1,22 @@
+            free(temp);
+void cmd_free(command* cmd){
+    if(cmd->execpath != NULL) free(cmd->execpath);
+    if(cmd->inputfile != NULL) free(cmd->inputfile);
+    if(cmd->outputfile != NULL) free(cmd->outputfile);
+    free(cmd->arguments);
+    free(cmd);
+        free(L->data[i]);
+    free(L->data);
+    free(S->data);
+            free(trueArgList);
+                    // free(fullpath);
+                            free(cmd[0]->execpath);
+                            free(cmd[0]->execpath);
+                            free(cmd[0]->execpath);
+                    cmd_free(cmd[0]);
+                    cmd_free(cmd[1]);
+                    free(cmd);
+                        free(word);
+                        free(parsed);
+    free(word);
+    free(parsed);
